@@ -1,11 +1,28 @@
-# create a new migration
-# example: migrate create -ext sql -dir ./migration -seq test
-migrate create -ext sql -dir <your_migration_folder_path> -seq <migration_name>
+## Create a new migration
 
-# run migration up
-migrate -database "postgres://user:password@localhost:5432/database_name?sslmode=disable" -path ./migration up
+To create a new migration, use the following command:
 
-# run migration down
-migrate -database "postgres://user:password@localhost:5432/database_name?sslmode=disable" -path ./migration down
+	$ migrate create -ext sql -dir <your_migration_folder_path> -seq <migration_name>
+    
+Replace `<your_migration_folder_path>` with the path where you want to store your migration files, and `<migration_name>` with the desired name for the migration.
+
+## Run migration up
+
+To apply the migrations to your PostgreSQL database, use the following command:
+
+    $ migrate -database "postgres://user:password@localhost:5432/database_name?sslmode=disable" -path ./migration up
+
+
+Replace the connection string in the `-database` flag with your PostgreSQL connection details.
+
+## Run migration down
+
+To rollback the migrations, use the following command:
+
+    $ migrate -database "postgres://user:password@localhost:5432/database_name?sslmode=disable" -path ./migration down
+    
+Replace the connection string in the `-database` flag with your PostgreSQL connection details.
+
+
 
 
