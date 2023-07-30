@@ -6,6 +6,7 @@ To create a new migration, use the following command:
     
 Replace `<your_migration_folder_path>` with the path where you want to store your migration files, and `<migration_name>` with the desired name for the migration.
 
+
 ## Run migration up
 
 To apply the migrations to your PostgreSQL database, use the following command:
@@ -14,6 +15,7 @@ To apply the migrations to your PostgreSQL database, use the following command:
 
 
 Replace the connection string in the `-database` flag with your PostgreSQL connection details.
+
 
 ## Run migration down
 
