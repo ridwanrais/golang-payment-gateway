@@ -1,2 +1,6 @@
 .env
+
+# air
 .air.toml
+main
+air.log

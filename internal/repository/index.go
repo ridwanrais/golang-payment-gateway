@@ -1,17 +1,24 @@
 package repository
 
 import (
+	"context"
+	"time"
+
+	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type repository struct {
-	db *pgxpool.Pool
+	db    *pgxpool.Pool
+	redis *redis.Client
 }
 
 type Repository interface {
-	// account
+	// caching
+	SetCacheValue(ctx context.Context, key, value string, expiration time.Duration) error
+	GetCacheValue(ctx context.Context, key string) (string, error)
 }
 
-func NewRepository(d *pgxpool.Pool) Repository {
-	return &repository{db: d}
+func NewRepository(d *pgxpool.Pool, r *redis.Client) Repository {
+	return &repository{db: d, redis: r}
 }

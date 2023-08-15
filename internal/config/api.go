@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"log"
 	"sync"
 
@@ -25,13 +26,17 @@ var repo repository.Repository
 var oneRepo sync.Once
 
 func getRepository() repository.Repository {
-	pgPool, err := ConnectToPostgreSQL()
+	ctx := context.Background()
+
+	pgPool, err := ConnectToPostgreSQL(ctx)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
+	redisClient := getRedisClient()
+
 	oneRepo.Do(func() {
-		repo = repository.NewRepository(pgPool)
+		repo = repository.NewRepository(pgPool, redisClient)
 	})
 
 	return repo
