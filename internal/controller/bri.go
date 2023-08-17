@@ -1,27 +1,50 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/ridwanrais/golang-payment-gateway/internal/entity"
+	"github.com/ridwanrais/golang-payment-gateway/internal/utils"
 	"github.com/ridwanrais/golang-payment-gateway/internal/validator"
 )
 
 func (c *controllers) BriCreateBriva(ctx *gin.Context) {
-	brivaData, err := validator.BriCreateBrivaValidator(ctx)
+	requestData, err := validator.BriCreateBrivaValidator(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"validation error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, entity.Response{
+			Status:       false,
+			ResponseCode: http.StatusBadRequest,
+			Message:      fmt.Sprintf("validation error: %s", err.Error()),
+		})
 		return
 	}
 
-	response, err := c.service.BriCreateBriva(ctx, *brivaData)
+	response, err := c.service.BriCreateBriva(ctx, *requestData)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"create briva error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, entity.Response{
+			Status:       false,
+			ResponseCode: http.StatusBadRequest,
+			Message:      fmt.Sprintf("create briva error: %s", err.Error()),
+		})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{
-		"message": "ok",
-		"data":    response,
+	data, err := utils.StructToMap(response)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, entity.Response{
+			Status:       false,
+			ResponseCode: http.StatusBadRequest,
+			Message:      fmt.Sprintf("parsing response error: %s", err.Error()),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, entity.Response{
+		Status:       true,
+		ResponseCode: http.StatusCreated,
+		Message:      "ok",
+		Data: data,
 	})
 }

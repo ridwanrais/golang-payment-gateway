@@ -19,3 +19,15 @@ type BriResponseData struct {
 	ErrDesc             string    `json:"errDesc,omitempty"`
 	Data                BrivaData `json:"data"`
 }
+
+type CreateBrivaRequest struct {
+	PhoneNumber string `json:"phoneNumber"`
+	Name        string `json:"name"`
+	Amount      int    `json:"amount"`
+	Note        string `json:"note"`
+}
+
+type CreateBrivaResponse struct {
+	ReferenceNumber      string `json:"referenceNumber"`
+	VirtualAccountNumber string `json:"virtualAccountNumber"`
+}

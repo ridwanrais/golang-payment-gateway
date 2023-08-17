@@ -3,7 +3,6 @@ package route
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/ridwanrais/golang-payment-gateway/internal/controller"
-	// "github.com/ridwanrais/golang-payment-gateway/internal/route"
 )
 
 func SetupRoutes(router *gin.Engine) {

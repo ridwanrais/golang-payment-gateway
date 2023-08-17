@@ -16,7 +16,7 @@ type Service interface {
 	BriRetrieveAccessToken(ctx context.Context) (string, error)
 
 	// BRI
-	BriCreateBriva(ctx context.Context, RequestData entity.BrivaData) (*entity.BriResponseData, error) 
+	BriCreateBriva(ctx context.Context, RequestData entity.CreateBrivaRequest) (*entity.CreateBrivaResponse, error)
 }
 
 func NewService(r repository.Repository) Service {

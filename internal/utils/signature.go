@@ -23,8 +23,6 @@ func BriGenerateSignature(path, method string, brivaData entity.BrivaData, token
 	// Construct the payload string
 	payload := fmt.Sprintf("path=%s&verb=%s&token=Bearer %s&timestamp=%s&body=%s", path, method, token, timestamp, body)
 
-	fmt.Println("payload: ", payload)
-
 	// Encrypt the payload string using the SHA256-HMAC algorithm with the Consumer Secret as the key
 	h := hmac.New(sha256.New, []byte(os.Getenv("BRI_CLIENT_SECRET")))
 	h.Write([]byte(payload))

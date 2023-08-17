@@ -6,8 +6,8 @@ import (
 	"github.com/ridwanrais/golang-payment-gateway/internal/entity"
 )
 
-func BriCreateBrivaValidator(c *gin.Context) (*entity.BrivaData, error) {
-	var requestData entity.BrivaData
+func BriCreateBrivaValidator(c *gin.Context) (*entity.CreateBrivaRequest, error) {
+	var requestData entity.CreateBrivaRequest
 	if err := c.ShouldBind(&requestData); err != nil {
 		// Validation failed, handle the error
 		if verr, ok := err.(validation.Errors); ok {
@@ -19,10 +19,8 @@ func BriCreateBrivaValidator(c *gin.Context) (*entity.BrivaData, error) {
 	}
 
 	if err := validation.ValidateStruct(&requestData,
-		validation.Field(&requestData.InstitutionCode, validation.Required),
-		validation.Field(&requestData.BrivaNo, validation.Required),
-		validation.Field(&requestData.CustCode, validation.Required),
-		validation.Field(&requestData.Nama, validation.Required),
+		validation.Field(&requestData.Name, validation.Required),
+		validation.Field(&requestData.PhoneNumber, validation.Required),
 		validation.Field(&requestData.Amount, validation.Required),
 	); err != nil {
 		// Validation failed, handle the error
