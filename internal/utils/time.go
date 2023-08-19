@@ -10,6 +10,5 @@ func GenerateCurrentTimestamp() string {
 func IsLaterThanNow(t time.Time) bool {
 	now := time.Now().UTC()
 
-	// Compare only the date components
 	return t.After(now)
 }
