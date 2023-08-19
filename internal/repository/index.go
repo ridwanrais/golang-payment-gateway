@@ -19,8 +19,11 @@ type Repository interface {
 	SetCacheValue(ctx context.Context, key, value string, expiration time.Duration) error
 	GetCacheValue(ctx context.Context, key string) (string, error)
 
+	// Transaction
+	GetVaTransaction(ctx context.Context, virtualAccountUuuid string) (*entity.Transaction, *entity.VirtualAccountTransaction, error)
+
 	// BRI
-	InsertBrivaTransaction(ctx context.Context, data entity.BrivaData, referenceNumber, vaNumber string) (int, error)
+	InsertBrivaTransaction(ctx context.Context, data entity.BrivaData, referenceNumber, vaNumber string) (*entity.CreateBrivaResponse, error)
 }
 
 func NewRepository(d *pgxpool.Pool, r *redis.Client) Repository {

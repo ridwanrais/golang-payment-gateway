@@ -48,3 +48,42 @@ func (c *controllers) BriCreateBriva(ctx *gin.Context) {
 		Data: data,
 	})
 }
+
+func (c *controllers) BriGetBriva(ctx *gin.Context) {
+	vaUuid := ctx.Param("vaUuid")
+	if vaUuid == "" {
+		ctx.JSON(http.StatusBadRequest, entity.Response{
+			Status:       false,
+			ResponseCode: http.StatusBadRequest,
+			Message:      "validation error: va uuid is required",
+		})
+		return
+	}
+
+	response, err := c.service.BriGetBriva(ctx, vaUuid)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, entity.Response{
+			Status:       false,
+			ResponseCode: http.StatusBadRequest,
+			Message:      fmt.Sprintf("create briva error: %s", err.Error()),
+		})
+		return
+	}
+
+	data, err := utils.StructToMap(response)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, entity.Response{
+			Status:       false,
+			ResponseCode: http.StatusBadRequest,
+			Message:      fmt.Sprintf("parsing response error: %s", err.Error()),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, entity.Response{
+		Status:       true,
+		ResponseCode: http.StatusCreated,
+		Message:      "ok",
+		Data: data,
+	})
+}

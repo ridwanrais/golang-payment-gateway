@@ -33,7 +33,10 @@ func getRepository() repository.Repository {
 		log.Fatal(err.Error())
 	}
 
-	redisClient := getRedisClient()
+	redisClient, err := getRedisClient(ctx)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
 	oneRepo.Do(func() {
 		repo = repository.NewRepository(pgPool, redisClient)

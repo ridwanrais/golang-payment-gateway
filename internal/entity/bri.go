@@ -30,4 +30,8 @@ type CreateBrivaRequest struct {
 type CreateBrivaResponse struct {
 	ReferenceNumber      string `json:"referenceNumber"`
 	VirtualAccountNumber string `json:"virtualAccountNumber"`
+	// TransactionID        int32  `json:"transactionId"`
+	TransactionUUID      string `json:"transactionUuid"`
+	// VaTransactionID      int32  `json:"vaTransactionId"`
+	VaTransactionUUID    string `json:"vaTransactionUuid"`
 }

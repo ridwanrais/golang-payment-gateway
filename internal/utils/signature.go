@@ -12,13 +12,16 @@ import (
 	"github.com/ridwanrais/golang-payment-gateway/internal/entity"
 )
 
-func BriGenerateSignature(path, method string, brivaData entity.BrivaData, token, timestamp string) (string, error) {
-	// Convert brivaData to JSON string for body
-	bodyBytes, err := json.Marshal(brivaData)
-	if err != nil {
-		return "", errors.New("error marshalling request body: " + err.Error())
+func BriGenerateSignature(path, method string, brivaData *entity.BrivaData, token, timestamp string) (string, error) {
+	body := ""
+	if brivaData != nil {
+		// Convert brivaData to JSON string for body
+		bodyBytes, err := json.Marshal(*brivaData)
+		if err != nil {
+			return "", errors.New("error marshalling request body: " + err.Error())
+		}
+		body = string(bodyBytes)
 	}
-	body := string(bodyBytes)
 
 	// Construct the payload string
 	payload := fmt.Sprintf("path=%s&verb=%s&token=Bearer %s&timestamp=%s&body=%s", path, method, token, timestamp, body)

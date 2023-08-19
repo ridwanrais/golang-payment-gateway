@@ -17,6 +17,7 @@ type Service interface {
 
 	// BRI
 	BriCreateBriva(ctx context.Context, RequestData entity.CreateBrivaRequest) (*entity.CreateBrivaResponse, error)
+	BriGetBriva(ctx context.Context, vaUuid string) (*entity.GetVirtualAccountResponse, error) 
 }
 
 func NewService(r repository.Repository) Service {
