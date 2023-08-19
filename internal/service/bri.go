@@ -167,7 +167,7 @@ func (s *service) BriGetBriva(ctx context.Context, vaUuid string) (*entity.GetVi
 	paymentStatus := ""
 	if responseData.Data.StatusBayar == "Y" {
 		paymentStatus = constants.PAYMENT_COMPLETED
-	} else if utils.IsLaterThanToday(vaTrx.ExpiryDate.Time) {
+	} else if utils.IsLaterThanNow(vaTrx.ExpiryDate.Time) {
 		paymentStatus = constants.PAYMENT_PENDING
 	} else {
 		paymentStatus = constants.PAYMENT_FAILED
