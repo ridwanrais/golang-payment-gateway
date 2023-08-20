@@ -5,10 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ridwanrais/golang-payment-gateway/internal/constants"
@@ -210,11 +212,14 @@ func (s *service) BriUpdateBriva(ctx context.Context, RequestData entity.UpdateV
 	if err != nil {
 		return nil, errors.New("failed to convert BRI_BRIVA_EXPIRY_DURATION_IN_HOURS to integer")
 	}
+	customerBrivaNumber := vaTrx.VirtualAccountNumber
+	brivaNo := customerBrivaNumber[:5]
+	custCode := customerBrivaNumber[5:]
 
 	brivaData := entity.BrivaData{
 		InstitutionCode: os.Getenv("BRI_INSTITUTION_CODE"),
-		BrivaNo:         os.Getenv("BRI_BRIVA_NUMBER"),
-		CustCode:        RequestData.PhoneNumber,
+		BrivaNo:         brivaNo,
+		CustCode:        custCode,
 		Nama:            RequestData.Name,
 		Amount:          strconv.Itoa(RequestData.Amount),
 		Keterangan:      RequestData.Note,
@@ -268,7 +273,6 @@ func (s *service) BriUpdateBriva(ctx context.Context, RequestData entity.UpdateV
 	_, err = s.repo.UpdateVaTransaction(ctx, entity.UpdateVaRequest{
 		TransactionUUID:      trx.UUID,
 		VaTransactionUUID:    vaTrx.UUID,
-		PhoneNumber:          RequestData.PhoneNumber,
 		Name:                 RequestData.Name,
 		Amount:               RequestData.Amount,
 		Note:                 RequestData.Note,
@@ -286,4 +290,72 @@ func (s *service) BriUpdateBriva(ctx context.Context, RequestData entity.UpdateV
 		TransactionUUID:      trx.UUID,
 		VaTransactionUUID:    vaTrx.UUID,
 	}, nil
+}
+
+func (s *service) BriDeleteBriva(ctx context.Context, vaUuid string) error {
+	_, vaTrx, err := s.repo.GetVaTransaction(ctx, vaUuid)
+	if err != nil {
+		return errors.New("failed to get va transaction: " + err.Error())
+	}
+
+	timestamp := utils.GenerateCurrentTimestamp()
+
+	token, err := s.BriRetrieveAccessToken(ctx)
+	if err != nil {
+		return errors.New("failed to retrieve access token: " + err.Error())
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+
+	// Set your parameters
+	institutionCode := os.Getenv("BRI_INSTITUTION_CODE")
+	customerBrivaNumber := vaTrx.VirtualAccountNumber
+	brivaNo := customerBrivaNumber[:5]
+	custCode := customerBrivaNumber[5:]
+	path := "/v1/briva"
+	url := os.Getenv("BRI_HOST") + path
+	method := "DELETE"
+
+	// Construct the request payload
+	payload := fmt.Sprintf("institutionCode=%s&brivaNo=%s&custCode=%s", institutionCode, brivaNo, custCode)
+	payloadReader := strings.NewReader(payload)
+
+	req, err := http.NewRequest(method, url, payloadReader)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("BRI-Timestamp", timestamp)
+	signature, err := utils.BriGenerateSignatureForDelete(path, method, payload, token, timestamp)
+	if err != nil {
+		return errors.New("failed to generate signature: " + err.Error())
+	}
+	req.Header.Set("BRI-Signature", signature)
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "text/plain")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	var responseData entity.BriResponseData
+	err = json.Unmarshal(body, &responseData)
+	if err != nil {
+		return  err
+	}
+
+	if !responseData.Status {
+		return errors.New(responseData.ErrDesc)
+	}
+
+	fmt.Println(responseData)
+
+	return s.repo.DeleteVaTransaction(ctx, vaUuid, false)
 }

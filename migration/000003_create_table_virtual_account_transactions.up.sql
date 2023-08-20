@@ -6,7 +6,9 @@ CREATE TABLE virtual_account_transactions (
     bank_name VARCHAR(100) NOT NULL, -- e.g. 'BRI', 'Mandiri', 'BNI'
     virtual_account_number VARCHAR(255) NOT NULL,
     expiry_date TIMESTAMP,
-    metadata JSONB -- for any bank-specific data in JSON format
+    metadata JSONB, -- for any bank-specific data in JSON format
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes for the virtual_account_transactions table

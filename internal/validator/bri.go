@@ -20,10 +20,9 @@ func BriCreateBrivaValidator(c *gin.Context) (*entity.CreateBrivaRequest, error)
 
 	if err := validation.ValidateStruct(&requestData,
 		validation.Field(&requestData.Name, validation.Required),
-		validation.Field(&requestData.PhoneNumber, validation.Required),
+		validation.Field(&requestData.PhoneNumber, validation.Required, validation.Length(10, 0)),
 		validation.Field(&requestData.Amount, validation.Required),
 	); err != nil {
-		// Validation failed, handle the error
 		return nil, err
 	}
 
@@ -48,12 +47,11 @@ func BriUpdateBrivaValidator(c *gin.Context) (*entity.UpdateVaRequest, error) {
 	if err := validation.ValidateStruct(&requestData,
 		validation.Field(&requestData.VaTransactionUUID, validation.Required),
 		validation.Field(&requestData.Name, validation.Required),
-		validation.Field(&requestData.PhoneNumber, validation.Required),
+		// validation.Field(&requestData.PhoneNumber, validation.Required, validation.Length(10, 0)),
 		validation.Field(&requestData.Amount, validation.Required),
 		// validation.Field(&requestData.PaymentStatus, validation.Required, validation.In(constants.PAYMENT_PENDING, constants.PAYMENT_COMPLETED, constants.PAYMENT_FAILED)),
 		validation.Field(&requestData.ExpiryDate, validation.Required),
 	); err != nil {
-		// Validation failed, handle the error
 		return nil, err
 	}
 

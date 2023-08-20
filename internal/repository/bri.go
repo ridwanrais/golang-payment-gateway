@@ -48,3 +48,4 @@ func (r *repository) InsertBrivaTransaction(ctx context.Context, data entity.Bri
 		VaTransactionUUID: vaTransactionUUID,
 	}, nil
 }
+

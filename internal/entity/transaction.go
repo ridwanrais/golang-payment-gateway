@@ -45,7 +45,7 @@ type GetVirtualAccountResponse struct {
 type UpdateVaRequest struct {
 	TransactionUUID   string `json:"-"`
 	VaTransactionUUID string `json:"vaUuid"`
-	PhoneNumber       string `json:"phoneNumber"`
+	// PhoneNumber       string `json:"phoneNumber"`
 	Name              string `json:"name"`
 	Amount            int    `json:"amount"`
 	Note              string `json:"note"`

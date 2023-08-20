@@ -16,7 +16,9 @@ func (r *repository) GetVaTransaction(ctx context.Context, virtualAccountUuid st
 	JOIN
 		virtual_account_transactions va ON t.transaction_id = va.transaction_id
 	WHERE
-		va.uuid = $1
+		va.uuid = $1 AND
+		t.deleted_at IS NULL AND
+		va.deleted_at IS NULL
 	`
 
 	tx := &entity.Transaction{}
@@ -44,8 +46,9 @@ func (r *repository) UpdateVaTransaction(ctx context.Context, updateData entity.
 	var transactionID int
 	var transactionUUID string
 	err = tx.QueryRow(ctx,
-		`UPDATE transactions SET name=$1, transaction_amount=$2, description=$3
-	 WHERE uuid=$4 RETURNING transaction_id, uuid`,
+		`UPDATE transactions 
+		SET name=$1, transaction_amount=$2, description=$3, updated_at=CURRENT_TIMESTAMP 
+		WHERE uuid=$4 RETURNING transaction_id, uuid`,
 		updateData.Name, updateData.Amount, updateData.Note, updateData.TransactionUUID).Scan(&transactionID, &transactionUUID)
 	if err != nil {
 		return nil, err
@@ -54,8 +57,9 @@ func (r *repository) UpdateVaTransaction(ctx context.Context, updateData entity.
 	// Update the virtual_account_transactions table
 	var vaTransactionUUID string
 	err = tx.QueryRow(ctx,
-		`UPDATE virtual_account_transactions SET bank_name=$1, virtual_account_number=$2, expiry_date=$3
-		 WHERE transaction_id=$4 RETURNING uuid`,
+		`UPDATE virtual_account_transactions 
+		SET bank_name=$1, virtual_account_number=$2, expiry_date=$3, updated_at=CURRENT_TIMESTAMP 
+		WHERE transaction_id=$4 RETURNING uuid`,
 		updateData.BankName, updateData.VirtualAccountNumber, updateData.ExpiryDate, transactionID).Scan(&vaTransactionUUID)
 	if err != nil {
 		return nil, err
@@ -71,4 +75,55 @@ func (r *repository) UpdateVaTransaction(ctx context.Context, updateData entity.
 		TransactionUUID:   transactionUUID,
 		VaTransactionUUID: vaTransactionUUID,
 	}, nil
+}
+
+func (r *repository) DeleteVaTransaction(ctx context.Context, vaTransactionUUID string, softDelete bool) error {
+	// Begin a database transaction
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	if softDelete {
+		// Soft delete: Set deleted_at to current timestamp in the virtual_account_transactions table
+		var transactionID int
+		err := tx.QueryRow(ctx,
+			`UPDATE virtual_account_transactions SET deleted_at=CURRENT_TIMESTAMP WHERE uuid=$1 AND deleted_at IS NULL RETURNING transaction_id`,
+			vaTransactionUUID).Scan(&transactionID)
+		if err != nil {
+			return err
+		}
+
+		// Soft delete: Set deleted_at to current timestamp in the transactions table using the captured transactionID
+		_, err = tx.Exec(ctx,
+			`UPDATE transactions SET deleted_at=CURRENT_TIMESTAMP WHERE transaction_id=$1`,
+			transactionID)
+		if err != nil {
+			return err
+		}
+
+	} else {
+		// Hard delete from the virtual_account_transactions table
+		var transactionID int
+		err := tx.QueryRow(ctx,
+			`DELETE FROM virtual_account_transactions WHERE uuid=$1 RETURNING transaction_id`,
+			vaTransactionUUID).Scan(&transactionID)
+		if err != nil {
+			return err
+		}
+
+		// Hard delete from the transactions table (assuming there's a FK constraint with CASCADE DELETE)
+		_, err = tx.Exec(ctx,
+			`DELETE FROM transactions WHERE transaction_id=$1`,
+			transactionID)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	// Commit the transaction
+	err = tx.Commit(ctx)
+	return err
 }

@@ -82,7 +82,7 @@ func (c *controllers) BriGetBriva(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, entity.Response{
 		Status:       true,
-		ResponseCode: http.StatusCreated,
+		ResponseCode: http.StatusOK,
 		Message:      "ok",
 		Data: data,
 	})
@@ -121,8 +121,36 @@ func (c *controllers) BriUpdateBriva(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, entity.Response{
 		Status:       true,
-		ResponseCode: http.StatusCreated,
+		ResponseCode: http.StatusOK,
 		Message:      "ok",
 		Data: data,
+	})
+}
+
+func (c *controllers) BriDeleteBriva(ctx *gin.Context) {
+	vaUuid := ctx.Param("vaUuid")
+	if vaUuid == "" {
+		ctx.JSON(http.StatusBadRequest, entity.Response{
+			Status:       false,
+			ResponseCode: http.StatusBadRequest,
+			Message:      "validation error: va uuid is required",
+		})
+		return
+	}
+
+	err := c.service.BriDeleteBriva(ctx, vaUuid)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, entity.Response{
+			Status:       false,
+			ResponseCode: http.StatusBadRequest,
+			Message:      fmt.Sprintf("delete briva error: %s", err.Error()),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, entity.Response{
+		Status:       true,
+		ResponseCode: http.StatusOK,
+		Message:      "ok",
 	})
 }
