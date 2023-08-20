@@ -10,5 +10,6 @@ func SetupBriRoutes(router *gin.RouterGroup, controller controller.Controllers) 
 	{
 		auth.POST("/briva", controller.BriCreateBriva)
 		auth.GET("/briva/:vaUuid", controller.BriGetBriva)
+		auth.PUT("/briva/:vaUuid", controller.BriUpdateBriva)
 	}
 }

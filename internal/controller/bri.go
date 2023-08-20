@@ -65,7 +65,46 @@ func (c *controllers) BriGetBriva(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, entity.Response{
 			Status:       false,
 			ResponseCode: http.StatusBadRequest,
-			Message:      fmt.Sprintf("create briva error: %s", err.Error()),
+			Message:      fmt.Sprintf("get briva error: %s", err.Error()),
+		})
+		return
+	}
+
+	data, err := utils.StructToMap(response)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, entity.Response{
+			Status:       false,
+			ResponseCode: http.StatusBadRequest,
+			Message:      fmt.Sprintf("parsing response error: %s", err.Error()),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, entity.Response{
+		Status:       true,
+		ResponseCode: http.StatusCreated,
+		Message:      "ok",
+		Data: data,
+	})
+}
+
+func (c *controllers) BriUpdateBriva(ctx *gin.Context) {
+	requestData, err := validator.BriUpdateBrivaValidator(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, entity.Response{
+			Status:       false,
+			ResponseCode: http.StatusBadRequest,
+			Message:      fmt.Sprintf("validation error: %s", err.Error()),
+		})
+		return
+	}
+
+	response, err := c.service.BriUpdateBriva(ctx, *requestData)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, entity.Response{
+			Status:       false,
+			ResponseCode: http.StatusBadRequest,
+			Message:      fmt.Sprintf("update briva error: %s", err.Error()),
 		})
 		return
 	}

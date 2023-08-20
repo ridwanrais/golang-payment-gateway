@@ -21,6 +21,7 @@ type Repository interface {
 
 	// Transaction
 	GetVaTransaction(ctx context.Context, virtualAccountUuuid string) (*entity.Transaction, *entity.VirtualAccountTransaction, error)
+	UpdateVaTransaction(ctx context.Context, updateData entity.UpdateVaRequest) (*entity.UpdateVaResponse, error)
 
 	// BRI
 	InsertBrivaTransaction(ctx context.Context, data entity.BrivaData, referenceNumber, vaNumber string) (*entity.CreateBrivaResponse, error)

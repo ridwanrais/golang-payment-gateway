@@ -156,6 +156,10 @@ func (s *service) BriGetBriva(ctx context.Context, vaUuid string) (*entity.GetVi
 		return nil, errors.New(responseData.ErrDesc)
 	}
 
+	name := ""
+	if trx.Description.Valid {
+		name = trx.Name.String
+	}
 	description := ""
 	if trx.Description.Valid {
 		description = trx.Description.String
@@ -175,6 +179,7 @@ func (s *service) BriGetBriva(ctx context.Context, vaUuid string) (*entity.GetVi
 
 	return &entity.GetVirtualAccountResponse{
 		PaymentStatus:        paymentStatus,
+		Name:                 name,
 		ReferenceNumber:      trx.ReferenceNumber,
 		TransactionDate:      trx.TransactionDate,
 		TransactionAmount:    int(trx.TransactionAmount),
@@ -183,5 +188,102 @@ func (s *service) BriGetBriva(ctx context.Context, vaUuid string) (*entity.GetVi
 		VirtualAccountNumber: vaTrx.VirtualAccountNumber,
 		ExpiryDate:           &vaTrx.ExpiryDate.Time,
 		Metadata:             metadata,
+	}, nil
+}
+
+func (s *service) BriUpdateBriva(ctx context.Context, RequestData entity.UpdateVaRequest) (*entity.UpdateVaResponse, error) {
+	trx, vaTrx, err := s.repo.GetVaTransaction(ctx, RequestData.VaTransactionUUID)
+	if err != nil {
+		return nil, errors.New("failed to get va transaction: " + err.Error())
+	}
+
+	timestamp := utils.GenerateCurrentTimestamp()
+
+	token, err := s.BriRetrieveAccessToken(ctx)
+	if err != nil {
+		return nil, errors.New("failed to retrieve access token: " + err.Error())
+	}
+
+	path := "/v1/briva"
+	method := "PUT"
+	expiryDuration, err := strconv.Atoi(os.Getenv("BRI_BRIVA_EXPIRY_DURATION_IN_HOURS"))
+	if err != nil {
+		return nil, errors.New("failed to convert BRI_BRIVA_EXPIRY_DURATION_IN_HOURS to integer")
+	}
+
+	brivaData := entity.BrivaData{
+		InstitutionCode: os.Getenv("BRI_INSTITUTION_CODE"),
+		BrivaNo:         os.Getenv("BRI_BRIVA_NUMBER"),
+		CustCode:        RequestData.PhoneNumber,
+		Nama:            RequestData.Name,
+		Amount:          strconv.Itoa(RequestData.Amount),
+		Keterangan:      RequestData.Note,
+		ExpiredDate:     time.Now().Add(time.Duration(expiryDuration) * time.Hour).Format("2006-01-02 15:04:05"),
+	}
+	signature, err := utils.BriGenerateSignature(path, method, &brivaData, token, timestamp)
+	if err != nil {
+		return nil, errors.New("failed to generate signature: " + err.Error())
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	url := os.Getenv("BRI_HOST") + "/v1/briva"
+	jsonData, err := json.Marshal(brivaData)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("BRI-Timestamp", timestamp)
+	req.Header.Set("BRI-Signature", signature)
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var responseData entity.BriResponseData
+	err = json.Unmarshal(body, &responseData)
+	if err != nil {
+		return nil, err
+	}
+
+	if !responseData.Status {
+		return nil, errors.New(responseData.ErrDesc)
+	}
+
+	// Construct virtual account number
+	virtualAccountNumber := brivaData.BrivaNo + brivaData.CustCode
+
+	_, err = s.repo.UpdateVaTransaction(ctx, entity.UpdateVaRequest{
+		TransactionUUID:      trx.UUID,
+		VaTransactionUUID:    vaTrx.UUID,
+		PhoneNumber:          RequestData.PhoneNumber,
+		Name:                 RequestData.Name,
+		Amount:               RequestData.Amount,
+		Note:                 RequestData.Note,
+		BankName:             constants.BANK_NAME_BRI,
+		VirtualAccountNumber: virtualAccountNumber,
+		ExpiryDate:           RequestData.ExpiryDate,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &entity.UpdateVaResponse{
+		ReferenceNumber:      trx.ReferenceNumber,
+		VirtualAccountNumber: virtualAccountNumber,
+		TransactionUUID:      trx.UUID,
+		VaTransactionUUID:    vaTrx.UUID,
 	}, nil
 }

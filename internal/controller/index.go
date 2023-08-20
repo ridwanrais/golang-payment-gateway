@@ -17,6 +17,7 @@ type Controllers interface {
 	// BRI
 	BriCreateBriva(ctx *gin.Context)
 	BriGetBriva(ctx *gin.Context)
+	BriUpdateBriva(ctx *gin.Context)
 }
 
 func NewControllers() Controllers {
