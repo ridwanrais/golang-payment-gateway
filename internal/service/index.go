@@ -14,12 +14,16 @@ type service struct {
 type Service interface {
 	// token
 	BriRetrieveAccessToken(ctx context.Context) (string, error)
+	MandiriRetrieveAccessToken(ctx context.Context) (string, error)
 
 	// BRI
 	BriCreateBriva(ctx context.Context, RequestData entity.CreateBrivaRequest) (*entity.CreateBrivaResponse, error)
 	BriGetBriva(ctx context.Context, vaUuid string) (*entity.GetVirtualAccountResponse, error)
 	BriUpdateBriva(ctx context.Context, RequestData entity.UpdateVaRequest) (*entity.UpdateVaResponse, error)
 	BriDeleteBriva(ctx context.Context, vaUuid string) error
+
+	// Mandiri
+	MandiriCreateVA(ctx context.Context, request entity.CreateVaRequest) (*entity.CreateVaResponse, error)
 }
 
 func NewService(r repository.Repository) Service {

@@ -2,9 +2,52 @@ package repository
 
 import (
 	"context"
+	"time"
 
+	"github.com/ridwanrais/golang-payment-gateway/internal/constants"
 	"github.com/ridwanrais/golang-payment-gateway/internal/entity"
 )
+
+func (r *repository) CreateVaTransaction(ctx context.Context, data entity.CreateVaRequest) (*entity.CreateVaResponse, error) {
+	// Begin a database transaction
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	// Insert into the general transactions table
+	var transactionID int
+	var transactionUUID string
+	err = tx.QueryRow(ctx,
+		`INSERT INTO transactions (name, reference_number, transaction_date, transaction_amount, description, status, transaction_type)
+         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING transaction_id, uuid`, data.Name,
+		data.ReferenceNumber, time.Now(), data.Amount, data.Note, constants.PAYMENT_PENDING, constants.PAYMENT_TYPE_VIRTUAL_ACCOUNT).Scan(&transactionID, &transactionUUID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Insert into the virtual_account_transactions table and return its uuid
+	var vaTransactionUUID string
+	err = tx.QueryRow(ctx,
+		`INSERT INTO virtual_account_transactions (transaction_id, bank_name, virtual_account_number, expiry_date)
+         VALUES ($1, $2, $3, $4) RETURNING uuid`,
+		transactionID, constants.BANK_NAME_BRI, data.VirtualAccountNumber, data.ExpiryDate).Scan(&vaTransactionUUID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Commit the transaction
+	err = tx.Commit(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &entity.CreateVaResponse{
+		TransactionUUID:      transactionUUID,
+		VaTransactionUUID:    vaTransactionUUID,
+	}, nil
+}
 
 func (r *repository) GetVaTransaction(ctx context.Context, virtualAccountUuid string) (*entity.Transaction, *entity.VirtualAccountTransaction, error) {
 	const query = `

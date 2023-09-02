@@ -19,6 +19,9 @@ type Controllers interface {
 	BriGetBriva(ctx *gin.Context)
 	BriUpdateBriva(ctx *gin.Context)
 	BriDeleteBriva(ctx *gin.Context)
+
+	// Mandiri
+	MandiriCreateVA(ctx *gin.Context) 
 }
 
 func NewControllers() Controllers {

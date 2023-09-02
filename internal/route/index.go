@@ -13,5 +13,6 @@ func SetupRoutes(router *gin.Engine) {
 	{
 		SetupHealthsRoutes(v1, controller)
 		SetupBriRoutes(v1, controller)
+		// SetupMandiriRoutes(v1, controller) // not ready yet	
 	}
 }

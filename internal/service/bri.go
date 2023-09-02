@@ -84,7 +84,6 @@ func (s *service) BriCreateBriva(ctx context.Context, RequestData entity.CreateB
 		return nil, errors.New(responseData.ErrDesc)
 	}
 
-	// Generate a random UUID for reference_number
 	refNumber := utils.GenerateReferenceNumber()
 
 	// Construct virtual account number

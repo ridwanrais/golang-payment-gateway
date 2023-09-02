@@ -29,6 +29,23 @@ type VirtualAccountTransaction struct {
 	Metadata             sql.NullString `db:"metadata"` // Assuming this will be serialized to/from string
 }
 
+type CreateVaRequest struct {
+	PhoneNumber          string `json:"phoneNumber"`
+	Name                 string `json:"name"`
+	Amount               int    `json:"amount"`
+	Note                 string `json:"note"`
+	ReferenceNumber      string `json:"-"`
+	VirtualAccountNumber string `json:"-"`
+	ExpiryDate           string `json:"-"`
+}
+
+type CreateVaResponse struct {
+	ReferenceNumber      string `json:"referenceNumber"`
+	VirtualAccountNumber string `json:"virtualAccountNumber"`
+	TransactionUUID      string `json:"transactionUuid"`
+	VaTransactionUUID    string `json:"vaTransactionUuid"`
+}
+
 type GetVirtualAccountResponse struct {
 	ReferenceNumber      string     `json:"referenceNumber"`
 	Name                 string     `json:"name"`
@@ -46,9 +63,9 @@ type UpdateVaRequest struct {
 	TransactionUUID   string `json:"-"`
 	VaTransactionUUID string `json:"vaUuid"`
 	// PhoneNumber       string `json:"phoneNumber"`
-	Name              string `json:"name"`
-	Amount            int    `json:"amount"`
-	Note              string `json:"note"`
+	Name   string `json:"name"`
+	Amount int    `json:"amount"`
+	Note   string `json:"note"`
 	// PaymentStatus        string `json:"paymentStatus"`
 	BankName             string `json:"bankName"`
 	VirtualAccountNumber string `json:"-"`

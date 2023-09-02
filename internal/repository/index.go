@@ -20,6 +20,7 @@ type Repository interface {
 	GetCacheValue(ctx context.Context, key string) (string, error)
 
 	// Transaction
+	CreateVaTransaction(ctx context.Context, data entity.CreateVaRequest) (*entity.CreateVaResponse, error)
 	GetVaTransaction(ctx context.Context, virtualAccountUuuid string) (*entity.Transaction, *entity.VirtualAccountTransaction, error)
 	UpdateVaTransaction(ctx context.Context, updateData entity.UpdateVaRequest) (*entity.UpdateVaResponse, error)
 	DeleteVaTransaction(ctx context.Context, vaTransactionUUID string, softDelete bool) error
