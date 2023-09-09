@@ -28,8 +28,8 @@ jobs:
         run: |
           docker-compose -f docker-compose.yml build
           # Tag the image with the desired repository and tag name
-          docker tag your-image-name:latest ridwanrais/personal-projects:latest
-          docker push ridwanrais/personal-projects:latest
+          docker tag your-image-name:latest ridwanrais/golang-payment-gateway:latest
+          docker push ridwanrais/golang-payment-gateway:latest
 
   deploy:
     needs: build
@@ -48,7 +48,7 @@ jobs:
             cd /path/on/ec2/
             
             # Pull the specific image from the repository
-            docker pull ridwanrais/personal-projects:latest
+            docker pull ridwanrais/golang-payment-gateway:latest
 
             # Stop the running services (if any)
             docker-compose -f docker-compose.yml down
